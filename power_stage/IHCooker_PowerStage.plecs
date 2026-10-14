@@ -32,28 +32,36 @@ Plecs {
 "input (V)\nP_full  = 1e3;          % full power (W)\nf_full  = 27e3;         "
 "% switching frequency at full power (Hz)\n\n% --- Design choices (assumptions"
 ") ---\nphi     = 30*pi/180;    % tank phase angle at full power (rad)\nL_eq  "
-"  = 60e-6;        % coil + pan inductance (H)\n\n% --- Derived tank values --"
-"-\nV1      = 2*Vdc/pi;                         % half-bridge fundamental ampl"
-"itude (V pk) / inverter fundamental voltage\nR_eq    = V1^2*cos(phi)^2/(2*P_f"
-"ull);       % ohm\nw       = 2*pi*f_full;\nX       = R_eq*tan(phi);          "
-"          % tank reactance at f_full (ohm)\nC_r     = 1/(w*(w*L_eq - X));    "
-"           % resonant capacitor (F)\nf0      = 1/(2*pi*sqrt(L_eq*C_r));      "
-"    % resonant frequency (Hz)\n\n% --- Half-power frequency (R_eq held consta"
-"nt) ---\nphi_h   = acos(sqrt(0.5)*cos(phi));\nX_h     = R_eq*tan(phi_h);\nw_h"
-"     = (X_h*C_r + sqrt((X_h*C_r)^2 + 4*L_eq*C_r))/(2*L_eq*C_r);\nf_half  = w_"
-"h/(2*pi);\n\n% --- Run selection: set f_sw to f_full or f_half ---\nf_sw    ="
-" f_half;\nt_dead  = 500e-9;                % placeholder, to be set after dev"
-"ice selection\nD       = 0.5 - f_sw*t_dead;     % gate duty cycle\nt_delay = "
-"1/(2*f_sw);            % Q2 phase delay (s)\n\n% --- Displaying Calculated Ph"
-"ase Angle --- \nX_sw   = 2*pi*f_sw*L_eq - 1/(2*pi*f_sw*C_r);   % tank reactan"
-"ce at f_sw (ohm)\nphi_sw = atan(X_sw/R_eq)*180/pi;                 % phase la"
-"g (deg)\n\n% --- Input capacitor stage ---\nL_src  = 100e-6;     % source lea"
-"d inductance (H), blocks ripple\nC_in   = 63.9e-6;    % input capacitor (F), "
-"from the 2 V p-p target at full power\nP_sw   = V1^2*cos(atan(X_sw/R_eq))^2/("
-"2*R_eq);   % fundamental-only power at f_sw (W)\nI_dc0  = P_sw/Vdc;          "
-"                     % expected average source current (A)\nR_damp = 2;\n\n% "
-"--- Placeholders for Stage 2 ---\nC_oss   = 200e-12;               % per swit"
-"ch, placeholder"
+"  = 60e-6;        % coil + pan inductance (H) (60 uF is pre-coil design)\n\n%"
+" --- Derived tank values ---\nV1      = 2*Vdc/pi;                         % h"
+"alf-bridge fundamental amplitude (V pk) / inverter fundamental voltage\n% R_e"
+"q    = 5.58921;\n R_eq    = V1^2*cos(phi)^2/(2*P_full);       % ohm\nw       "
+"= 2*pi*f_full;\nX       = R_eq*tan(phi);                    % tank reactance "
+"at f_full (ohm)\nC_r = 0.33e-6 + 0.33e-6 + 0.22e-6;\nf0      = 1/(2*pi*sqrt(L"
+"_eq*C_r));          % resonant frequency (Hz)\nC_r_design = 1/(w*(w*L_eq - X)"
+");            % resonant capacitor (F)\n\n% --- Half-power frequency (R_eq he"
+"ld constant) ---\nphi_h   = acos(sqrt(0.5)*cos(phi));\nX_h     = R_eq*tan(phi"
+"_h);\nw_h     = (X_h*C_r + sqrt((X_h*C_r)^2 + 4*L_eq*C_r))/(2*L_eq*C_r);\nf_h"
+"alf  = w_h/(2*pi);\n\n% --- Run selection: set f_sw to f_full or f_half ---\n"
+"f_sw    = f_full;\nt_dead  = 500e-9;                % placeholder, to be set "
+"after device selection\nD       = 0.5 - f_sw*t_dead;     % gate duty cycle\nt"
+"_delay = 1/(2*f_sw);            % Q2 phase delay (s)\n\n% --- Displaying Calc"
+"ulated Phase Angle --- \nX_sw   = 2*pi*f_sw*L_eq - 1/(2*pi*f_sw*C_r);   % tan"
+"k reactance at f_sw (ohm)\nphi_sw = atan(X_sw/R_eq)*180/pi;                 %"
+" phase lag (deg)\n\n% --- Input capacitor stage ---\nL_src  = 100e-6;     % s"
+"ource lead inductance (H), blocks ripple\n\ntolCin  = 0;                     "
+" % +-0.05 for corner runs\nC_in    = 100e-6*(1+tolCin);      % input capacito"
+"r (F), from the 2 V p-p target at full power: KEMET C4AQIEW6100A3BJ\nESR_Cin "
+"= 2.2e-3;                 % KEMET datasheet, 70 C, 10 kHz\n\nP_sw   = V1^2*co"
+"s(atan(X_sw/R_eq))^2/(2*R_eq);   % fundamental-only power at f_sw (W)\nI_dc0 "
+" = P_sw/Vdc;                               % expected average source current "
+"(A)\nR_damp = 2;\n\n% --- Cr: 2 x 940C6P33K-F + 1 x 940C6P22K-F (Cornell Dubi"
+"lier, PP film, 600 V, +-10%) ---\ntolC    = 0;                       % 0 = no"
+"minal; use -0.03 / +0.03 for corner runs\nCr1 = 0.33e-6*(1+tolC);            "
+"% 940C6P33K-F\nCr2 = 0.33e-6*(1+tolC);            % 940C6P33K-F\nCr3 = 0.22e-"
+"6*(1+tolC);            % 940C6P22K-F\nESR_Cr1 = 9e-3;\nESR_Cr2 = 9e-3;\nESR_C"
+"r3 = 12e-3;\n\n% --- Placeholders for Stage 2 ---\nC_oss   = 200e-12;        "
+"       % per switch, placeholder"
   InitialState  "1"
   SystemState   ""
   TaskingMode   "1"
@@ -79,7 +87,7 @@ Plecs {
   ScriptsDialogSplitterPos "0"
   Schematic {
     Location      [0, 26; 1475, 743]
-    ZoomFactor    1.30957
+    ZoomFactor    1.14436
     SliderPosition [0, 0]
     ShowBrowser   off
     BrowserWidth  100
@@ -101,10 +109,10 @@ Plecs {
       Type          MosfetWithDiode
       Name          "Q1_high"
       Show          on
-      Position      [505, 295]
+      Position      [560, 295]
       Direction     up
       Flipped       off
-      LabelPosition northNorthwest
+      LabelPosition northNortheast
       Parameter {
         Variable      "Ron"
         Value         "0"
@@ -135,10 +143,10 @@ Plecs {
       Type          MosfetWithDiode
       Name          "Q2_low"
       Show          on
-      Position      [505, 450]
+      Position      [560, 450]
       Direction     up
       Flipped       off
-      LabelPosition northNorthwest
+      LabelPosition southSouthwest
       Parameter {
         Variable      "Ron"
         Value         "0"
@@ -166,29 +174,10 @@ Plecs {
       }
     }
     Component {
-      Type          Capacitor
-      Name          "Cr"
-      Show          on
-      Position      [600, 355]
-      Direction     right
-      Flipped       on
-      LabelPosition south
-      Parameter {
-        Variable      "C"
-        Value         "C_r"
-        Show          off
-      }
-      Parameter {
-        Variable      "v_init"
-        Value         "Vdc/2"
-        Show          off
-      }
-    }
-    Component {
       Type          Inductor
       Name          "L_eq"
       Show          on
-      Position      [670, 355]
+      Position      [815, 355]
       Direction     left
       Flipped       off
       LabelPosition north
@@ -207,7 +196,7 @@ Plecs {
       Type          Resistor
       Name          "R_eq"
       Show          on
-      Position      [750, 355]
+      Position      [870, 355]
       Direction     left
       Flipped       off
       LabelPosition north
@@ -230,7 +219,7 @@ Plecs {
       Type          Ammeter
       Name          "i_L"
       Show          on
-      Position      [820, 355]
+      Position      [930, 355]
       Direction     left
       Flipped       off
       LabelPosition south
@@ -321,11 +310,11 @@ Plecs {
       Direction     up
       Flipped       off
       LabelPosition south
-      Location      [0, 26; 1475, 801]
+      Location      [0, 26; 1475, 814]
       State         "AAAA/wAAAAD9AAAAAgAAAAEAAAAAAAAAAPwCAAAAA/sAAAAQAFoAbwBvA"
 "G0AQQByAGUAYQAAAAAA/////wAAADYA////+wAAABQAUwBhAHYAZQBkAFYAaQBlAHcAcwAAAAAA//"
 "///wAAAGgA////+wAAAAwAVAByAGEAYwBlAHMAAAAAAP////8AAABoAP///wAAAAMAAAAAAAAAAPw"
-"BAAAAAfsAAAAUAEQAYQB0AGEAVwBpAGQAZwBlAHQAAAAAAP////8AAABQAP///wAABcMAAALsAAAA"
+"BAAAAAfsAAAAUAEQAYQB0AGEAVwBpAGQAZwBlAHQAAAAAAP////8AAABQAP///wAABcMAAAL5AAAA"
 "BAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAOAFQAbwBvAGwAQgBhAHIBAAAAAP////8AAAAAA"
 "AAAAA=="
       SavedViews    "AAAAAgAAAAA="
@@ -388,7 +377,7 @@ Plecs {
       Type          Voltmeter
       Name          "v_sw"
       Show          on
-      Position      [550, 420]
+      Position      [580, 420]
       Direction     up
       Flipped       off
       LabelPosition west
@@ -397,10 +386,10 @@ Plecs {
       Type          Voltmeter
       Name          "v_R"
       Show          on
-      Position      [750, 385]
+      Position      [870, 385]
       Direction     left
       Flipped       off
-      LabelPosition southwest
+      LabelPosition westSouthwest
     }
     Component {
       Type          Ammeter
@@ -415,7 +404,7 @@ Plecs {
       Type          Voltmeter
       Name          "v_Cr"
       Show          on
-      Position      [600, 400]
+      Position      [690, 440]
       Direction     left
       Flipped       off
       LabelPosition south
@@ -424,15 +413,15 @@ Plecs {
       Type          Scope
       Name          "Scope_tank"
       Show          on
-      Position      [935, 300]
+      Position      [1065, 290]
       Direction     up
       Flipped       off
       LabelPosition south
-      Location      [0, 26; 1475, 783]
+      Location      [0, 23; 1475, 762]
       State         "AAAA/wAAAAD9AAAAAgAAAAEAAAAAAAAAAPwCAAAAA/sAAAAQAFoAbwBvA"
 "G0AQQByAGUAYQAAAAAA/////wAAAIYA////+wAAABQAUwBhAHYAZQBkAFYAaQBlAHcAcwAAAAAA//"
 "///wAAAGgA////+wAAAAwAVAByAGEAYwBlAHMAAAAAAP////8AAABoAP///wAAAAMAAAXDAAAAvfw"
-"BAAAAAfsAAAAUAEQAYQB0AGEAVwBpAGQAZwBlAHQAAAAAAAAABcMAAABQAP///wAABcMAAALaAAAA"
+"BAAAAAfsAAAAUAEQAYQB0AGEAVwBpAGQAZwBlAHQAAAAAAAAABcMAAABQAP///wAABcMAAALIAAAA"
 "BAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAOAFQAbwBvAGwAQgBhAHIBAAAAAP////8AAAAAA"
 "AAAAA=="
       SavedViews    "AAAAAgAAAAA="
@@ -445,7 +434,7 @@ Plecs {
       TimeRange     "0"
       ScrollingMode "1"
       SingleTimeAxis "1"
-      Open          "0"
+      Open          "1"
       Ts            "-1"
       SampleLimit   "0"
       XAxisLabel    "Time / s"
@@ -525,7 +514,7 @@ Plecs {
       Type          Product
       Name          "Product"
       Show          off
-      Position      [755, 250]
+      Position      [875, 245]
       Direction     left
       Flipped       off
       LabelPosition east
@@ -555,7 +544,7 @@ Plecs {
       SrcComponent  "Components/Control/Filters/Moving Average"
       Name          "P_out_avg"
       Show          on
-      Position      [755, 200]
+      Position      [875, 195]
       Direction     left
       Flipped       off
       LabelPosition west
@@ -590,7 +579,7 @@ Plecs {
       Type          Display
       Name          "P_out (W)"
       Show          on
-      Position      [815, 165]
+      Position      [930, 155]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -772,7 +761,7 @@ Plecs {
       SrcComponent  "Components/Control/Filters/RMS Value"
       Name          "i_L_rms"
       Show          on
-      Position      [935, 235]
+      Position      [1065, 225]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -807,7 +796,7 @@ Plecs {
       Type          Display
       Name          "I_L,rms (A)"
       Show          on
-      Position      [1015, 235]
+      Position      [1145, 225]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -907,7 +896,7 @@ Plecs {
       Type          Display
       Name          "phi_calc (deg)"
       Show          on
-      Position      [1015, 165]
+      Position      [1145, 175]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -927,7 +916,7 @@ Plecs {
       Type          Constant
       Name          "phi_calc_const"
       Show          on
-      Position      [935, 165]
+      Position      [1065, 175]
       Direction     right
       Flipped       off
       LabelPosition south
@@ -1067,14 +1056,14 @@ Plecs {
       Position      [445, 325]
       Direction     up
       Flipped       off
-      LabelPosition southeast
+      LabelPosition west
     }
     Component {
       Type          Reference
       SrcComponent  "Components/Control/Filters/RMS Value"
       Name          "i_Cin_rms"
       Show          on
-      Position      [580, 80]
+      Position      [570, 80]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -1109,7 +1098,7 @@ Plecs {
       Type          Display
       Name          "I_Cin,rms (A)"
       Show          on
-      Position      [655, 80]
+      Position      [645, 80]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -1129,7 +1118,7 @@ Plecs {
       Type          Scope
       Name          "Scope_Cin"
       Show          on
-      Position      [580, 150]
+      Position      [570, 150]
       Direction     up
       Flipped       off
       LabelPosition south
@@ -1149,7 +1138,7 @@ Plecs {
       TimeRange     "0"
       ScrollingMode "1"
       SingleTimeAxis "1"
-      Open          "0"
+      Open          "1"
       Ts            "-1"
       SampleLimit   "0"
       XAxisLabel    "Time / s"
@@ -1204,11 +1193,415 @@ Plecs {
         }
       }
     }
+    Component {
+      Type          Capacitor
+      Name          "Cr1"
+      Show          on
+      Position      [630, 315]
+      Direction     right
+      Flipped       on
+      LabelPosition south
+      Parameter {
+        Variable      "C"
+        Value         "Cr1"
+        Show          off
+      }
+      Parameter {
+        Variable      "v_init"
+        Value         "Vdc/2"
+        Show          off
+      }
+    }
+    Component {
+      Type          Capacitor
+      Name          "Cr2"
+      Show          on
+      Position      [630, 355]
+      Direction     right
+      Flipped       on
+      LabelPosition south
+      Parameter {
+        Variable      "C"
+        Value         "Cr2"
+        Show          off
+      }
+      Parameter {
+        Variable      "v_init"
+        Value         "Vdc/2"
+        Show          off
+      }
+    }
+    Component {
+      Type          Capacitor
+      Name          "Cr3"
+      Show          on
+      Position      [630, 395]
+      Direction     right
+      Flipped       on
+      LabelPosition south
+      Parameter {
+        Variable      "C"
+        Value         "Cr3"
+        Show          off
+      }
+      Parameter {
+        Variable      "v_init"
+        Value         "Vdc/2"
+        Show          off
+      }
+    }
+    Component {
+      Type          Resistor
+      Name          "ESR_Cr1"
+      Show          on
+      Position      [670, 315]
+      Direction     right
+      Flipped       off
+      LabelPosition south
+      Parameter {
+        Variable      "R"
+        Value         "ESR_Cr1"
+        Show          off
+      }
+    }
+    Component {
+      Type          Resistor
+      Name          "ESR_Cr2"
+      Show          on
+      Position      [670, 355]
+      Direction     right
+      Flipped       off
+      LabelPosition south
+      Parameter {
+        Variable      "R"
+        Value         "ESR_Cr2"
+        Show          off
+      }
+    }
+    Component {
+      Type          Resistor
+      Name          "ESR_Cr3"
+      Show          on
+      Position      [670, 395]
+      Direction     right
+      Flipped       off
+      LabelPosition south
+      Parameter {
+        Variable      "R"
+        Value         "ESR_Cr3"
+        Show          off
+      }
+    }
+    Component {
+      Type          Ammeter
+      Name          "i_Cr1"
+      Show          on
+      Position      [715, 315]
+      Direction     left
+      Flipped       off
+      LabelPosition south
+    }
+    Component {
+      Type          Ammeter
+      Name          "i_Cr2"
+      Show          on
+      Position      [715, 355]
+      Direction     left
+      Flipped       off
+      LabelPosition south
+    }
+    Component {
+      Type          Ammeter
+      Name          "i_Cr3"
+      Show          on
+      Position      [715, 395]
+      Direction     left
+      Flipped       off
+      LabelPosition south
+    }
+    Component {
+      Type          Reference
+      SrcComponent  "Components/Control/Filters/RMS Value"
+      Name          "i_Cr1_rms"
+      Show          on
+      Position      [1065, 355]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-15, -15; 15, 15]
+      Parameter {
+        Variable      "x0"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "ts"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "fs"
+        Value         "f_sw"
+        Show          off
+      }
+      Terminal {
+        Type          Input
+        Position      [-15, 0]
+        Direction     left
+      }
+      Terminal {
+        Type          Output
+        Position      [19, 0]
+        Direction     right
+      }
+    }
+    Component {
+      Type          Reference
+      SrcComponent  "Components/Control/Filters/RMS Value"
+      Name          "i_Cr2_rms"
+      Show          on
+      Position      [1065, 410]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-15, -15; 15, 15]
+      Parameter {
+        Variable      "x0"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "ts"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "fs"
+        Value         "f_sw"
+        Show          off
+      }
+      Terminal {
+        Type          Input
+        Position      [-15, 0]
+        Direction     left
+      }
+      Terminal {
+        Type          Output
+        Position      [19, 0]
+        Direction     right
+      }
+    }
+    Component {
+      Type          Reference
+      SrcComponent  "Components/Control/Filters/RMS Value"
+      Name          "i_Cr3_rms"
+      Show          on
+      Position      [1065, 470]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-15, -15; 15, 15]
+      Parameter {
+        Variable      "x0"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "ts"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "fs"
+        Value         "f_sw"
+        Show          off
+      }
+      Terminal {
+        Type          Input
+        Position      [-15, 0]
+        Direction     left
+      }
+      Terminal {
+        Type          Output
+        Position      [19, 0]
+        Direction     right
+      }
+    }
+    Component {
+      Type          Display
+      Name          "I_Cr1,rms (A)"
+      Show          on
+      Position      [1145, 355]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-31, -11; 31, 11]
+      Parameter {
+        Variable      "Notation"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "Precision"
+        Value         "4"
+        Show          off
+      }
+    }
+    Component {
+      Type          Display
+      Name          "I_Cr2,rms (A)"
+      Show          on
+      Position      [1145, 410]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-31, -11; 31, 11]
+      Parameter {
+        Variable      "Notation"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "Precision"
+        Value         "4"
+        Show          off
+      }
+    }
+    Component {
+      Type          Display
+      Name          "I_Cr3,rms (A)"
+      Show          on
+      Position      [1145, 470]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-31, -11; 31, 11]
+      Parameter {
+        Variable      "Notation"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "Precision"
+        Value         "4"
+        Show          off
+      }
+    }
+    Component {
+      Type          Resistor
+      Name          "ESR_Cin"
+      Show          on
+      Position      [445, 420]
+      Direction     up
+      Flipped       off
+      LabelPosition west
+      Parameter {
+        Variable      "R"
+        Value         "ESR_Cin"
+        Show          off
+      }
+    }
+    Component {
+      Type          Constant
+      Name          "R_eq_const"
+      Show          on
+      Position      [1065, 125]
+      Direction     right
+      Flipped       off
+      LabelPosition south
+      Frame         [-10, -10; 10, 10]
+      Parameter {
+        Variable      "Value"
+        Value         "R_eq"
+        Show          off
+      }
+      Parameter {
+        Variable      "DataType"
+        Value         "10"
+        Show          off
+      }
+    }
+    Component {
+      Type          Display
+      Name          "R_eq (Ohms)"
+      Show          on
+      Position      [1145, 125]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-31, -11; 31, 11]
+      Parameter {
+        Variable      "Notation"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "Precision"
+        Value         "4"
+        Show          off
+      }
+    }
+    Component {
+      Type          Reference
+      SrcComponent  "Components/Control/Filters/RMS Value"
+      Name          "v_Req_rms"
+      Show          on
+      Position      [1065, 535]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-15, -15; 15, 15]
+      Parameter {
+        Variable      "x0"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "ts"
+        Value         "0"
+        Show          off
+      }
+      Parameter {
+        Variable      "fs"
+        Value         "f_sw"
+        Show          off
+      }
+      Terminal {
+        Type          Input
+        Position      [-15, 0]
+        Direction     left
+      }
+      Terminal {
+        Type          Output
+        Position      [19, 0]
+        Direction     right
+      }
+    }
+    Component {
+      Type          Display
+      Name          "v_Req,rms (V)"
+      Show          on
+      Position      [1145, 535]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-31, -11; 31, 11]
+      Parameter {
+        Variable      "Notation"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "Precision"
+        Value         "4"
+        Show          off
+      }
+    }
     Connection {
       Type          Wire
       SrcComponent  "Q2_low"
       SrcTerminal   2
-      Points        [505, 500]
+      Points        [560, 500]
       Branch {
         Points        [445, 500]
         Branch {
@@ -1217,19 +1610,20 @@ Plecs {
           DstTerminal   2
         }
         Branch {
-          Points        [445, 405]
+          Points        [445, 455]
           Branch {
-            DstComponent  "C_in"
+            DstComponent  "ESR_Cin"
             DstTerminal   2
           }
           Branch {
+            Points        [475, 455]
             DstComponent  "v_Cin"
             DstTerminal   2
           }
         }
       }
       Branch {
-        Points        [550, 500]
+        Points        [580, 500]
         Branch {
           Points        [615, 500]
           Branch {
@@ -1237,7 +1631,7 @@ Plecs {
             DstTerminal   1
           }
           Branch {
-            Points        [870, 500; 870, 355]
+            Points        [950, 500]
             DstComponent  "i_L"
             DstTerminal   2
           }
@@ -1252,17 +1646,30 @@ Plecs {
       Type          Wire
       SrcComponent  "Q1_high"
       SrcTerminal   2
-      Points        [505, 355]
+      Points        [560, 355]
       Branch {
-        Points        [550, 355]
+        Points        [580, 355]
         Branch {
-          Points        [575, 355]
+          Points        [605, 355]
           Branch {
-            DstComponent  "Cr"
-            DstTerminal   1
+            Points        [615, 355]
+            Branch {
+              Points        [615, 395]
+              DstComponent  "Cr3"
+              DstTerminal   1
+            }
+            Branch {
+              Points        [615, 315]
+              DstComponent  "Cr1"
+              DstTerminal   1
+            }
+            Branch {
+              DstComponent  "Cr2"
+              DstTerminal   1
+            }
           }
           Branch {
-            Points        [575, 400]
+            Points        [605, 440]
             DstComponent  "v_Cr"
             DstTerminal   1
           }
@@ -1325,13 +1732,13 @@ Plecs {
       Type          Wire
       SrcComponent  "R_eq"
       SrcTerminal   1
-      Points        [720, 355]
+      Points        [845, 355]
       Branch {
         DstComponent  "L_eq"
         DstTerminal   2
       }
       Branch {
-        Points        [720, 385]
+        Points        [845, 385]
         DstComponent  "v_R"
         DstTerminal   1
       }
@@ -1340,29 +1747,14 @@ Plecs {
       Type          Wire
       SrcComponent  "R_eq"
       SrcTerminal   2
-      Points        [780, 355]
+      Points        [900, 355]
       Branch {
         DstComponent  "i_L"
         DstTerminal   1
       }
       Branch {
-        Points        [780, 385]
+        Points        [900, 385]
         DstComponent  "v_R"
-        DstTerminal   2
-      }
-    }
-    Connection {
-      Type          Wire
-      SrcComponent  "Cr"
-      SrcTerminal   2
-      Points        [625, 355]
-      Branch {
-        DstComponent  "L_eq"
-        DstTerminal   1
-      }
-      Branch {
-        Points        [625, 400]
-        DstComponent  "v_Cr"
         DstTerminal   2
       }
     }
@@ -1370,37 +1762,30 @@ Plecs {
       Type          Signal
       SrcComponent  "v_sw"
       SrcTerminal   3
-      Points        [565, 290]
+      Points        [595, 280]
       DstComponent  "Scope_tank"
       DstTerminal   1
     }
     Connection {
       Type          Signal
-      SrcComponent  "v_R"
-      SrcTerminal   3
-      DstComponent  "Product"
-      DstTerminal   2
-    }
-    Connection {
-      Type          Signal
       SrcComponent  "i_L"
       SrcTerminal   3
-      Points        [820, 340]
+      Points        [945, 340]
       Branch {
-        Points        [845, 340]
+        Points        [960, 340]
         Branch {
-          Points        [865, 340; 865, 300]
+          Points        [1005, 340; 1005, 290]
           DstComponent  "Scope_tank"
           DstTerminal   2
         }
         Branch {
-          Points        [845, 235]
+          Points        [960, 225]
           DstComponent  "i_L_rms"
           DstTerminal   1
         }
       }
       Branch {
-        Points        [820, 320; 760, 320]
+        Points        [945, 330; 880, 330]
         DstComponent  "Product"
         DstTerminal   3
       }
@@ -1416,7 +1801,7 @@ Plecs {
       Type          Signal
       SrcComponent  "P_out_avg"
       SrcTerminal   1
-      Points        [755, 165]
+      Points        [875, 155]
       DstComponent  "P_out (W)"
       DstTerminal   1
     }
@@ -1481,7 +1866,7 @@ Plecs {
       Type          Signal
       SrcComponent  "v_Cr"
       SrcTerminal   3
-      Points        [615, 385; 615, 310]
+      Points        [790, 425; 790, 300]
       DstComponent  "Scope_tank"
       DstTerminal   3
     }
@@ -1537,7 +1922,7 @@ Plecs {
       Branch {
         Points        [445, 255]
         Branch {
-          Points        [505, 255]
+          Points        [560, 255]
           DstComponent  "Q1_high"
           DstTerminal   1
         }
@@ -1578,7 +1963,7 @@ Plecs {
       Type          Signal
       SrcComponent  "v_Cin"
       SrcTerminal   3
-      Points        [540, 385; 540, 145]
+      Points        [510, 385; 510, 145]
       DstComponent  "Scope_Cin"
       DstTerminal   1
     }
@@ -1586,9 +1971,9 @@ Plecs {
       Type          Signal
       SrcComponent  "i_Cin"
       SrcTerminal   3
-      Points        [530, 325; 530, 155]
+      Points        [495, 325; 495, 155]
       Branch {
-        Points        [530, 80]
+        Points        [495, 80]
         DstComponent  "i_Cin_rms"
         DstTerminal   1
       }
@@ -1596,6 +1981,156 @@ Plecs {
         DstComponent  "Scope_Cin"
         DstTerminal   2
       }
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "Cr3"
+      SrcTerminal   2
+      DstComponent  "ESR_Cr3"
+      DstTerminal   2
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "Cr2"
+      SrcTerminal   2
+      DstComponent  "ESR_Cr2"
+      DstTerminal   2
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "Cr1"
+      SrcTerminal   2
+      DstComponent  "ESR_Cr1"
+      DstTerminal   2
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "ESR_Cr3"
+      SrcTerminal   1
+      DstComponent  "i_Cr3"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "i_Cr2"
+      SrcTerminal   1
+      DstComponent  "ESR_Cr2"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "i_Cr1"
+      SrcTerminal   1
+      DstComponent  "ESR_Cr1"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "i_Cr1"
+      SrcTerminal   2
+      Points        [745, 315; 745, 355]
+      Branch {
+        Points        [745, 395]
+        DstComponent  "i_Cr3"
+        DstTerminal   2
+      }
+      Branch {
+        Points        [760, 355]
+        Branch {
+          DstComponent  "L_eq"
+          DstTerminal   1
+        }
+        Branch {
+          Points        [760, 440]
+          DstComponent  "v_Cr"
+          DstTerminal   2
+        }
+      }
+      Branch {
+        DstComponent  "i_Cr2"
+        DstTerminal   2
+      }
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "i_Cr1_rms"
+      SrcTerminal   2
+      DstComponent  "I_Cr1,rms (A)"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "i_Cr2_rms"
+      SrcTerminal   2
+      DstComponent  "I_Cr2,rms (A)"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "i_Cr3_rms"
+      SrcTerminal   2
+      DstComponent  "I_Cr3,rms (A)"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "i_Cr1"
+      SrcTerminal   3
+      Points        [775, 300; 775, 400; 1005, 400; 1005, 355]
+      DstComponent  "i_Cr1_rms"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "i_Cr2"
+      SrcTerminal   3
+      Points        [765, 340; 765, 410]
+      DstComponent  "i_Cr2_rms"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "i_Cr3"
+      SrcTerminal   3
+      Points        [760, 380; 760, 470]
+      DstComponent  "i_Cr3_rms"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "C_in"
+      SrcTerminal   2
+      DstComponent  "ESR_Cin"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "R_eq_const"
+      SrcTerminal   1
+      DstComponent  "R_eq (Ohms)"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "v_R"
+      SrcTerminal   3
+      Points        [870, 370]
+      Branch {
+        DstComponent  "Product"
+        DstTerminal   2
+      }
+      Branch {
+        Points        [910, 370; 910, 535]
+        DstComponent  "v_Req_rms"
+        DstTerminal   1
+      }
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "v_Req_rms"
+      SrcTerminal   2
+      DstComponent  "v_Req,rms (V)"
+      DstTerminal   1
     }
   }
 }
